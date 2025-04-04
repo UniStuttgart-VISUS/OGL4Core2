@@ -7,15 +7,16 @@ cmake-build-*/
 # Ignore cmake and build artifacts, in case someone trys to build in source dir.
 CMakeFiles/
 CMakeCache.txt
+CPackConfig.cmake
+CPackSourceConfig.cmake
 cmake_install.cmake
-Makefile
 install_manifest.txt
+Makefile
+build.ninja
 _deps/
-script-externals/
 OGL4Core2
 OGL4Core2.config
 *.a
-*.cbp
 *.sln
 *.vcxproj
 *.filters
