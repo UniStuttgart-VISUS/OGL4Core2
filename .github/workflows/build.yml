@@ -1,0 +1,62 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - name: 'Release'
+            configuration: Release
+          - name: 'Debug'
+            configuration: Debug
+    name: "Windows-${{ matrix.job.name }}"
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+      - name: Configure
+        run: >-
+          cmake -S . -B $GITHUB_WORKSPACE/build -G "Visual Studio 17 2022"
+      - name: Build
+        run: cmake --build $GITHUB_WORKSPACE/build --config ${{ matrix.job.configuration }} --parallel 4
+
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - name: 'GCC-Debug'
+            cc: gcc-13
+            cxx: g++-13
+            configuration: Debug
+          - name: 'Clang-Release'
+            cc: clang-18
+            cxx: clang++-18
+            configuration: Release
+    name: "Linux-${{ matrix.job.name }}"
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install dependencies
+        # https://www.glfw.org/docs/latest/compile_guide.html#compile_deps_x11
+        run: |
+          sudo apt-get update
+          sudo apt-get install libwayland-dev libxkbcommon-dev xorg-dev ninja-build
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+      - name: Configure
+        run: >-
+          cmake -S . -B $GITHUB_WORKSPACE/build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.job.configuration }}
+      - name: Build
+        run: cmake --build $GITHUB_WORKSPACE/build
+    env:
+      CC: ${{ matrix.job.cc }}
+      CXX: ${{ matrix.job.cxx }}
