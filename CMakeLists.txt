@@ -22,6 +22,8 @@ include(resources)
 
 # Options
 option(OGL4CORE2_ENABLE_STACKTRACE "Show stacktrace on OpenGL errors (experimental)." OFF)
+option(OGL4CORE2_ENABLE_TOBII "Enable Tobii eye tracking support." OFF)
+option(OGL4CORE2_ENABLE_PWROWG "Enable power-overwhelming library for energy measurements." OFF)
 
 # Dependencies
 include("libs/libs.cmake")
@@ -108,6 +110,17 @@ if (OGL4CORE2_ENABLE_STACKTRACE)
   endif ()
 endif ()
 
+if (OGL4CORE2_ENABLE_TOBII)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE OGL4CORE2_ENABLE_TOBII)
+  # TODO: Install tobii streaming dll
+endif()
+
+if (OGL4CORE2_ENABLE_PWROWG)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE OGL4CORE2_ENABLE_PWROWG)
+  find_package(power_overwhelming CONFIG REQUIRED)
+  target_link_libraries(${PROJECT_NAME} PRIVATE power_overwhelming::power_overwhelming)
+endif()
+
 if (MSVC AND OGL4CORE2_DISABLE_CONSOLE)
   target_link_options(${PROJECT_NAME} PRIVATE "/entry:mainCRTStartup")
 endif ()
@@ -129,6 +142,10 @@ foreach (dir ${res_dirs})
   get_filename_component(dir_clean "${dir}" DIRECTORY)
   install(DIRECTORY "${plugins_source_dir}/${dir}/" DESTINATION "resources/${dir_clean}")
 endforeach ()
+
+if (OGL4CORE2_ENABLE_PWROWG)
+  install(IMPORTED_RUNTIME_ARTIFACTS power_overwhelming::power_overwhelming RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()
 
 # Package
 set(OGL4CORE2_CPACK_GENERATOR "ZIP" CACHE STRING "Choose CPack generator.")
